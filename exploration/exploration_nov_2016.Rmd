@@ -1,0 +1,53 @@
+---
+title: "Contest package exploration"
+output: html_notebook
+date: \today
+---
+
+This is a exploration of the contest package  
+
+```{r}
+library(contest)
+library(plyr)
+library(dplyr)
+params <- list(max_gens = 1000,
+               males_per_winner = 20,
+               num_nests = 500,
+               density = 1,
+               metabolism = 1,
+               female_mat_time = 10, 
+               maturation_rate = 1,
+               mutation_rate = 0.1,
+               mutation_sd = 0.1,
+               mass_to_energy = 10,
+               growth_a = 0.5,
+               growth_b = 0.1,
+               initial_mass = 5,
+               alpha_mean = 0,
+               alpha_sd = 3,
+               beta_sd = 3,
+               beta_max = 20,
+               beta_mean = 0,
+               verbose = F,
+               log_every = 10,
+               quiet = T)
+run_parallel(params, "density", 0.1, 4, 0.5, mc.cores = 4) -> sim
+
+str(sim)
+plyr::rbind.fill(sim) -> sim_data
+
+```
+
+
+```{r}
+library(ggplot2)
+sim_data %>% filter(generation == 1000) %>% 
+  ggplot(aes(density, alpha)) + geom_point() + ggtitle("Generation 1000")
+
+
+sim_data %>% filter(generation == 1000) %>% 
+  ggplot(aes(density, beta)) + geom_point() + ggtitle("Generation 1000")
+
+
+  
+```

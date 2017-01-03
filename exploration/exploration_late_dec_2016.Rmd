@@ -1,0 +1,60 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This a second exploration of the contest package.
+
+```{r}
+library(contest)
+library(plyr)
+library(dplyr)
+params <- list(max_gens = 1000,
+               males_per_winner = 20,
+               num_nests = 100,
+               density = 1,
+               metabolism = 1,
+               female_mat_time = 10, 
+               maturation_rate = 1,
+               mutation_rate = 0.1,
+               mutation_sd = 0.1,
+               mass_to_energy = 10,
+               growth_a = 0.5,
+               growth_b = 0.1,
+               initial_mass = 5,
+               alpha_mean = 0,
+               alpha_sd = 3,
+               beta_sd = 3,
+               beta_max = 10,
+               beta_mean = 0,
+               verbose = F,
+               log_every = 100,
+               quiet = T)
+#run_parallel(params, "density", c(0.5), mc.cores = 1) -> sim
+
+# str(sim)
+plyr::rbind.fill(sim) -> sim_data
+sim_data %>% glimpse
+do.call(run_simulation, params) -> single
+
+```
+
+```{r}
+library(rbenchmark)
+benchmark(do.call(run_simulation, params), replications = 1)
+```
+
+```{r}
+last <- sim_data %>% filter(generation == params$max_gens)
+ggplot(last, aes(density, alpha)) + geom_point()
+ggplot(last, aes(density, beta)) + geom_point()
+
+last %>% group_by(density) %>% 
+  summary()
+```
+
+
+```{r}
+run_parallel(params, "mutation_rate", 0.01, 0.5, 0.1, mc.cores = 4) -> mutation_rates
+
+```
