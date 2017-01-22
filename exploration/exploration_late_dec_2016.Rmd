@@ -77,6 +77,10 @@ run_parallel(params, "encounter_delta", seq(1, 10, 0.25), mc.cores = 4) %>%
 
 ggplot(last_contest_noise, aes(encounter_delta, alpha)) + geom_point()
 ggplot(last_contest_noise, aes(encounter_delta, beta)) + geom_point()
+ggplot(last_contest_noise, aes(encounter_delta, mass)) + geom_point()
+ggplot(last_contest_noise, aes(as.factor(encounter_delta), mass)) + geom_violin()
+ggplot(last_contest_noise, aes(encounter_delta, num_fights)) + geom_point() + geom_jitter()
+ggplot(last_contest_noise, aes(encounter_delta, num_fights)) + geom_point() + geom_jitter()
 ```
 
 
@@ -85,6 +89,9 @@ in the commitment function
 
 $$
 \textbf{Commitment} = \textbf{exp}(\beta) \times (\frac{a\text{.mass}}{b\text{.mass}} \times z)^{\alpha}
+$$
+$$
+z \sim F(\text{contest_noise, contest_noise})
 $$
 ```{r}
 plyr::ldply(c(10, 20, 50, 100, 1000), function(x) {data.frame(df = x, z = rf(1000, x,x))}) %>% 
