@@ -24,7 +24,7 @@ params <- list(max_gens = 500,
                metabolism = 1,
                female_mat_time = 10, 
                maturation_rate = 1,
-               mutation_rate = 0.1,
+               mutation_rate = 0.01,
                mutation_sd = 0.01,
                mass_to_energy = 10,
                growth_a = 0.5,
@@ -42,7 +42,7 @@ params <- list(max_gens = 500,
 ```
 
 Some benchmarking:
-```{r}
+```{r, eval = F}
 t(sapply( c(1, 2, 4, 10), function(i){
   data.frame(encounter_delta =  i, elapsed = benchmark({
     params[["encounter_delta"]] <- i
@@ -54,34 +54,38 @@ t(sapply( c(1, 2, 4, 10), function(i){
 No uncert in fights 
 ```{r}
 params$contest_noise <- 0
-run_parallel(params, "encounter_delta", seq(1, 10, 0.25), mc.cores = 4) %>% 
+run_parallel(params, "encounter_delta", seq(1, 10, 0.5), mc.cores = 4) %>% 
   plyr::rbind.fill(.) %>% # collapse the list of dataframes back down into a single dataframe
   filter(generation == params$max_gens) -> last_no_noise
 
-ggplot(last_no_noise, aes(encounter_delta, alpha)) + geom_point()
-ggplot(last_no_noise, aes(encounter_delta, beta)) + geom_point()
 ```
 Now there is noise in the commitment function:
 it has the density:
 ```{r}
-ggplot(data.frame(z = rf(1000, 100, 100)), aes(z)) + geom_density()
+ggplot(data.frame(z = rf(1000, 100, 100)), aes(z)) + geom_density() + geom_vline(xintercept = 1)
 ```
 moderate uncert in fights
 ```{r}
 # change mass to energy
 params$contest_noise <- 100
-run_parallel(params, "encounter_delta", seq(1, 10, 0.25), mc.cores = 4) %>% 
+run_parallel(params, "encounter_delta", seq(1, 10, 0.5), mc.cores = 4) %>% 
   plyr::rbind.fill(.) %>% # collapse the list of dataframes back down into a single dataframe
   filter(generation == params$max_gens) -> last_contest_noise
-
-
-ggplot(last_contest_noise, aes(encounter_delta, alpha)) + geom_point()
-ggplot(last_contest_noise, aes(encounter_delta, beta)) + geom_point()
-ggplot(last_contest_noise, aes(encounter_delta, mass)) + geom_point()
-ggplot(last_contest_noise, aes(as.factor(encounter_delta), mass)) + geom_violin()
-ggplot(last_contest_noise, aes(encounter_delta, num_fights)) + geom_point() + geom_jitter()
-ggplot(last_contest_noise, aes(encounter_delta, num_fights)) + geom_point() + geom_jitter()
 ```
+```{r Noise plots}
+ggplot(last_contest_noise, aes(encounter_delta, alpha)) + geom_point() + ggtitle("Noise in fights")
+ggplot(last_contest_noise, aes(encounter_delta, beta)) + geom_point() + ggtitle("Noise in fights")
+ggplot(last_contest_noise, aes(as.factor(encounter_delta), mass)) + geom_violin() + ggtitle("Noise in fights")
+ggplot(last_contest_noise, aes(as.factor(encounter_delta), num_fights)) + geom_count() + ggtitle("Noise in fights")
+```
+
+```{r No noise plots}
+ggplot(last_no_noise, aes(encounter_delta, alpha)) + geom_point() + ggtitle("No noise in fights")
+ggplot(last_no_noise, aes(encounter_delta, beta)) + geom_point() + ggtitle("No noise in fights")
+ggplot(last_no_noise, aes(as.factor(encounter_delta), mass)) + geom_violin() + ggtitle("No noise in fights")
+ggplot(last_no_noise, aes(as.factor(encounter_delta), num_fights)) + geom_count() + ggtitle("No noise in fights")
+```
+
 
 
 examples of how changes in contest_noise (ie df) can effect z
@@ -93,6 +97,7 @@ $$
 $$
 z \sim F(\text{contest_noise, contest_noise})
 $$
+
 ```{r}
 plyr::ldply(c(10, 20, 50, 100, 1000), function(x) {data.frame(df = x, z = rf(1000, x,x))}) %>% 
   ggplot(aes(z, col = as.factor(df))) + geom_density()
