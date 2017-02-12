@@ -1,0 +1,48 @@
+packages:
+  - callr
+  - contest
+  - plyr
+  - dplyr
+  - xtable
+  - ggplot2
+  
+sources:
+  - R
+
+targets:
+  all:
+    depends:
+      - ms.pdf
+
+  ms.pdf:
+    command: latex_build_clean("ms.tex", "refs.bib")
+    depends:
+      - figures
+
+  figures:
+    depends:
+      - parameters.tex
+      - figures/fight_randomness.pdf
+      - figures/beta_plot.png
+      - figures/alpha_plot.png
+  
+  parameters.tex:
+    command: param_table(parameters)
+  
+  parameters:
+    command: get_params()
+    
+  last_generation_data:
+    command: get_last_generation_data(parameters)
+
+  figures/fight_randomness.pdf: 
+    command: fight_randomness_plot()
+    plot: true
+    
+  figures/beta_plot.png: 
+    command: beta_plot(last_generation_data)
+    plot: true
+    
+  figures/alpha_plot.png: 
+    command: alpha_plot(last_generation_data)
+    plot: true
