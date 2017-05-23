@@ -1,5 +1,4 @@
 packages:
-  - callr
   - contest
   - plyr
   - dplyr
